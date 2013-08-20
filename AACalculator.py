@@ -6,8 +6,9 @@ from xlrd import open_workbook, cellname
 
 WELCOME = ("%s%s%s%s%s") % ('*'*50, '\n', ' '*12, 'Welcome to AACalculator\n', '*'*50)
 CHOICE  = '\nPlease select from the following options:\n  1.Generate Template\n  2.Generate Result\n'
-DEFAULT = 4
-OFFSET = 4
+DEFAULT = 5
+OFFSET = 7
+DESC_LEN = 15
 
 def select_mode():
     choice = raw_input(CHOICE)
@@ -22,15 +23,21 @@ def select_mode():
 def gen_template():
     file = 'template.xls'
     book = Workbook(encoding="utf-8")
-    sheet1 = book.add_sheet('1st share')
-    lineNo = OFFSET
-    tmp_start = lineNo
+    sheet = book.add_sheet('1st share')
+    sheet.write_merge(0,0,0,DESC_LEN, 'How to use:')
+    sheet.write_merge(1,1,1,DESC_LEN, '1.Rename the person\'s name and event name to its actual name')
+    sheet.write_merge(2,2,1,DESC_LEN, '2.Add cost for each event under the name for who paid for it. Note: there can be more than one people paid for an event')
+    sheet.write_merge(3,3,1,DESC_LEN, '3.For those who shouldn\'t share an event, put \'x\' there')
+    sheet.write_merge(4,4,1,DESC_LEN, '4.Double check the data, Make sure there\'s no redundant data in the table. Then save and exit Excel. Re-run the script and choose the 2nd option')
+    rowNo = OFFSET
+    tmp_start = rowNo
     for i in range(DEFAULT):
-        sheet1.write(lineNo, i+1, 'Person' + str(i+1))
-    lineNo += 1
+        sheet.write(rowNo, i+1, 'Person' + str(i+1))
+    rowNo += 1
     for i in range(DEFAULT):
-        sheet1.write(OFFSET+i+1, 0, 'Event' + str(i+1))
+        sheet.write(OFFSET+i+1, 0, 'Event' + str(i+1))
     book.save(file)
+    print 'Template is generated, please open template.xls fill in AA data'
 
 def gen_result():
     people = []
@@ -62,11 +69,6 @@ def gen_result():
         Matrix.append(row)
         no_shares.append(no_share)
         sums.append(cost)
-        #w_sheet.write(row_index + OFFSET + 1, r_sheet.ncols, 'test')
-
-    print no_shares
-    print sums
-    print Matrix
 
     # Initialize should_pay and paid list
     should_pays = [0] * (r_sheet.ncols-1)
@@ -82,38 +84,38 @@ def gen_result():
     diffs = [a-b for a, b in zip(paids, should_pays)]
 
     # Print Result
-    lineNo = r_sheet.nrows + 1
+    rowNo = r_sheet.nrows + 1
     colNo = 0
-    w_sheet.write(lineNo, colNo, 'Paid')
+    w_sheet.write(rowNo, colNo, 'Paid')
     for paid in paids:
         colNo += 1
-        w_sheet.write(lineNo, colNo, round(paid,2))
-    lineNo += 1
+        w_sheet.write(rowNo, colNo, round(paid,2))
+    rowNo += 1
     colNo = 0
-    w_sheet.write(lineNo, colNo, 'Should Pay')
+    w_sheet.write(rowNo, colNo, 'Should Pay')
     for should_pay in should_pays:
         colNo += 1
-        w_sheet.write(lineNo, colNo, round(should_pay,2))
-    lineNo += 1
+        w_sheet.write(rowNo, colNo, round(should_pay,2))
+    rowNo += 1
     colNo =0
-    w_sheet.write(lineNo, colNo, 'Difference')
+    w_sheet.write(rowNo, colNo, 'Difference')
     for diff in diffs:
         colNo +=1
-        w_sheet.write(lineNo, colNo, round(diff,2))
+        w_sheet.write(rowNo, colNo, round(diff,2))
 
     colNo = r_sheet.ncols
-    lineNo = OFFSET
-    w_sheet.write(lineNo, colNo, 'Sum')
-    lineNo += 1
+    rowNo = OFFSET
+    w_sheet.write(rowNo, colNo, 'Sum')
+    rowNo += 1
     for cost in sums:
-        w_sheet.write(lineNo, colNo, cost)
-        lineNo += 1
-    lineNo = r_sheet.nrows +1
-    w_sheet.write(lineNo, colNo, round(sum(paids),2))
-    lineNo += 1
-    w_sheet.write(lineNo, colNo, round(sum(should_pays),2))
-    lineNo += 1
-    w_sheet.write(lineNo, colNo, round(sum(diffs),2))
+        w_sheet.write(rowNo, colNo, cost)
+        rowNo += 1
+    rowNo = r_sheet.nrows +1
+    w_sheet.write(rowNo, colNo, round(sum(paids),2))
+    rowNo += 1
+    w_sheet.write(rowNo, colNo, round(sum(should_pays),2))
+    rowNo += 1
+    w_sheet.write(rowNo, colNo, round(sum(diffs),2))
 
     write_book.save('template.xls')
 
