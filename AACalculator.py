@@ -3,6 +3,9 @@
 from xlutils.copy import copy
 from xlwt import Workbook, easyxf
 from xlrd import open_workbook, cellname
+from time import gmtime, strftime
+from datetime import datetime, timedelta
+import os
 
 WELCOME = ("%s%s%s%s%s") % ('*'*50, '\n', ' '*12, 'Welcome to AACalculator\n', '*'*50)
 CHOICE  = '\nPlease select from the following options:\n  1.Generate Template\n  2.Generate Result\n'
@@ -21,7 +24,6 @@ def select_mode():
         select_mode()
 
 def gen_template():
-    file = 'template.xls'
     book = Workbook(encoding="utf-8")
     sheet = book.add_sheet('1st share')
     sheet.write_merge(0,0,0,DESC_LEN, 'How to use:')
@@ -36,12 +38,14 @@ def gen_template():
     rowNo += 1
     for i in range(DEFAULT):
         sheet.write(OFFSET+i+1, 0, 'Event' + str(i+1))
-    book.save(file)
-    print 'Template is generated, please open template.xls fill in AA data'
+
+    file_name = datetime.now().strftime('%Y%m%d%H%M%S') + '.xls'
+    book.save(file_name)
+    print 'Template is generated, please open %s and fill in AA data' % file_name
 
 def gen_result():
     people = []
-    read_book = open_workbook('template.xls')
+    read_book = open_workbook(get_filename())
     r_sheet = read_book.sheet_by_index(0)
     write_book = copy(read_book)
     w_sheet = write_book.get_sheet(0)
@@ -118,6 +122,24 @@ def gen_result():
     w_sheet.write(rowNo, colNo, round(sum(diffs),2))
 
     write_book.save('template.xls')
+
+def get_filename():
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    current = datetime.now()
+    diff_dict = {}
+    for file in files:
+        if file.split('.')[0].isdigit():
+            diff_dict[file] = current - datetime.strptime(file.split('.')[0], '%Y%m%d%H%M%S')
+    least_file = ''
+    least_diff = timedelta(microseconds=-1)
+    for file in diff_dict.keys():
+        if least_diff == timedelta(microseconds=-1):
+            least_file = file
+            least_diff = diff_dict[file]
+        elif least_diff > diff_dict[file]:
+            least_file = file
+            least_diff = diff_dict[file]
+    return least_file
 
 def main():
     print WELCOME
